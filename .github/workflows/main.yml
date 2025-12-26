@@ -8,19 +8,20 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # ИЗМЕНЕНИЕ: Используем старую Ubuntu 22.04, так как на новой (latest) старый Flutter крашится
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v4
 
-    # ВЕРНУЛ JAVA 17 (Это исправит ошибку 255)
+    # Java 11 — единственная, которая стабильно работает с Flutter 3.16
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '17'
+        java-version: '11'
 
-    # ОСТАВИЛ FLUTTER 3.16.9 (Это исправит серый экран и bundle not found)
+    # Flutter 3.16.9 — единственный, который пакует Flet 0.22.1 без ошибки "bundle not found"
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:

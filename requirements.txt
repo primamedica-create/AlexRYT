@@ -1,0 +1,4 @@
+﻿flet==0.22.1
+yt-dlp
+requests
+openpyxl

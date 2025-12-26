@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4  # Обновлено до v4
 
     # 1. Настраиваем Java
     - name: Setup Java
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4 # Обновлено до v4
       with:
         distribution: 'temurin'
         java-version: '17'
@@ -24,11 +24,11 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.16.0' # Важно! Flet 0.22 любит эту версию
+        flutter-version: '3.19.0' # Немного обновил версию Flutter для стабильности
 
     # 3. Настраиваем Python
     - name: Setup Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5 # Обновлено до v5
       with:
         python-version: '3.11'
 
@@ -38,14 +38,14 @@ jobs:
         python -m pip install --upgrade pip
         pip install flet==0.22.1
 
-    # 5. Собираем APK (САМЫЙ ВАЖНЫЙ ШАГ)
+    # 5. Собираем APK
     - name: Build APK
       run: |
         flet build apk --verbose
 
-    # 6. Выгружаем результат
+    # 6. Выгружаем результат (ИСПРАВЛЕНА ОШИБКА)
     - name: Upload APK
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4 # Исправлено: v3 -> v4
       with:
         name: app-release
         path: build/apk/app-release.apk

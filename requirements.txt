@@ -1,5 +1,5 @@
-flet==0.22.1
-certifi==2024.2.2
+flet==0.21.1
+certifi
 yt-dlp
 requests
 openpyxl

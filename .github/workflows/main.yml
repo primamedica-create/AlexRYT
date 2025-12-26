@@ -13,37 +13,33 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # 1. Настраиваем Java 11 (самая стабильная для Android)
+    # ВЕРНУЛ JAVA 17 (Это исправит ошибку 255)
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '11'
+        java-version: '17'
 
-    # 2. Настраиваем Flutter (СТРОГО 3.16.9 для Flet 0.22.1)
+    # ОСТАВИЛ FLUTTER 3.16.9 (Это исправит серый экран и bundle not found)
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.16.9'
 
-    # 3. Настраиваем Python
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
-    # 4. Ставим Flet
     - name: Install Flet
       run: |
         python -m pip install --upgrade pip
         pip install flet==0.22.1
 
-    # 5. Собираем APK
     - name: Build APK
       run: |
         flet build apk --verbose
 
-    # 6. Выгружаем результат
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:

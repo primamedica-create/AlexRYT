@@ -1,4 +1,4 @@
-flet==0.21.1
+flet==0.21.2
 certifi
 yt-dlp
 requests

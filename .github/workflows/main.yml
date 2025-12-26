@@ -1,50 +1,25 @@
 name: Build APK
-
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
+on: [push, pull_request]
 jobs:
   build:
-    runs-on: ubuntu-22.04 # Используем стабильную Ubuntu
-
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
-
-    # Java 17 нужна для нового Flutter
-    - name: Setup Java
-      uses: actions/setup-java@v4
+    - uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
-
-    # Ставим свежий Flutter
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
+    - uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.24.0'
-        channel: 'stable'
-
-    - name: Setup Python
-      uses: actions/setup-python@v5
+        flutter-version: '3.22.2' # <-- ЗОЛОТАЯ СЕРЕДИНА
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-
-    # Устанавливаем свежий Flet
-    - name: Install Flet
-      run: |
+    - run: |
         python -m pip install --upgrade pip
-        pip install flet==0.25.2
-
-    # Собираем APK с флагом --include-packages (это может помочь с bundle)
-    - name: Build APK
-      run: |
-        flet build apk --verbose --include-packages flet
-
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
+        pip install flet==0.24.1
+    - run: flet build apk --verbose
+    - uses: actions/upload-artifact@v4
       with:
         name: app-release
         path: build/apk/app-release.apk

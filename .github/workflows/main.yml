@@ -1,0 +1,30 @@
+name: Build APK
+on: [push]
+
+jobs:
+  android-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build APK
+        uses: flet-dev/flet-action@v1
+        with:
+          target: main.py
+          
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: AlexRYT_App
+          path: build/apk/app-release.apk

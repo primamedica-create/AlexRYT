@@ -1,13 +1,15 @@
 import flet as ft
-import yt_dlp
 import json
 import os
 import random
 import requests
 import time
 import threading
-import openpyxl
 from datetime import datetime, timedelta
+
+# ВАЖНО: Мы убрали тяжелые импорты отсюда, чтобы приложение стартовало мгновенно!
+# import yt_dlp (Убрано)
+# import openpyxl (Убрано)
 
 # --- КОНФИГУРАЦИЯ ---
 APP_NAME = "AlexRYT"
@@ -53,6 +55,13 @@ def parse_date(date_str):
     except: return date_str
 
 def save_excel(data, filename="AlexRYT_Export.xlsx"):
+    # ЛЕНИВЫЙ ИМПОРТ (Грузим только когда надо сохранить)
+    try:
+        import openpyxl
+    except ImportError:
+        print("Ошибка: openpyxl не установлен")
+        return None
+
     try:
         wb = openpyxl.Workbook()
         ws = wb.active
@@ -71,8 +80,17 @@ def save_excel(data, filename="AlexRYT_Export.xlsx"):
                 is_mon,
                 row.get('duration', '')
             ])
-        wb.save(filename)
-        return os.path.abspath(filename)
+        
+        # На Android сохраняем во временную папку, так как корень закрыт
+        path = os.path.join(os.environ.get("h", "/storage/emulated/0/Download"), filename)
+        try:
+            wb.save(path)
+            return path
+        except:
+            # Резервный путь
+            wb.save(filename)
+            return os.path.abspath(filename)
+            
     except Exception as e:
         print(f"Excel Error: {e}")
         return None
@@ -80,6 +98,13 @@ def save_excel(data, filename="AlexRYT_Export.xlsx"):
 # --- ЯДРО ПОИСКА (YT-DLP) ---
 
 def search_youtube(query, limit=20, filters=None, is_shorts=False, is_channel=False):
+    # ЛЕНИВЫЙ ИМПОРТ (Грузим yt-dlp только при поиске)
+    try:
+        import yt_dlp
+    except ImportError:
+        print("CRITICAL: yt-dlp not found")
+        return []
+
     ydl_opts = {
         'quiet': True,
         'extract_flat': True,
@@ -172,6 +197,11 @@ def search_youtube(query, limit=20, filters=None, is_shorts=False, is_channel=Fa
     return results
 
 def run_deep_analysis(url):
+    # ЛЕНИВЫЙ ИМПОРТ
+    try:
+        import yt_dlp
+    except: return None
+
     ydl_opts = {'quiet': True, 'ignoreerrors': True, 'proxy': get_proxy()}
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=False)
@@ -222,7 +252,6 @@ def main(page: ft.Page):
         
         img = ft.Image(src=vid['thumb'], height=img_h, fit=ft.ImageFit.COVER, border_radius=8)
         
-        # Для 0.22.1 используем ft.icons.ИМЯ_ИКОНКИ
         mon_icon = ft.Icon(ft.icons.MONETIZATION_ON, color="green", size=16) if vid.get('is_monetized_est') else ft.Container()
         
         title_btn = ft.TextButton(
@@ -413,7 +442,7 @@ def main(page: ft.Page):
         content=ft.Column([
             ft.Row([inp_search, ft.IconButton(ft.icons.SEARCH, on_click=do_search, bgcolor="green")]),
             ft.Row([ft.Text("Лимит:"), slider_limit, ft.IconButton(ft.icons.SAVE_ALT, on_click=export_excel_search, tooltip="В Excel")], alignment="center"),
-            ft.Container(content=search_results_col, expand=True) 
+            search_results_col 
         ], expand=True)
     )
 
@@ -446,7 +475,7 @@ def main(page: ft.Page):
         content=ft.Column([
             ft.Text("🔥 Поиск вирусного контента"),
             ft.Row([inp_hype_niche, ft.IconButton(ft.icons.LOCAL_FIRE_DEPARTMENT, on_click=do_hype, icon_color="orange")]),
-            ft.Container(content=hype_col, expand=True)
+            hype_col
         ], expand=True)
     )
 
@@ -478,7 +507,7 @@ def main(page: ft.Page):
         content=ft.Column([
             ft.Row([inp_shorts, ft.IconButton(ft.icons.SEARCH, on_click=do_shorts)]),
             ft.Row([chk_24, chk_72]),
-            ft.Container(content=shorts_col, expand=True)
+            shorts_col
         ], expand=True)
     )
 
@@ -505,7 +534,7 @@ def main(page: ft.Page):
         content=ft.Column([
             ft.Row([inp_chan_q, ft.IconButton(ft.icons.SEARCH, on_click=do_chan_search)]),
             ft.Row([inp_min_subs]),
-            ft.Container(content=chan_col, expand=True)
+            chan_col
         ], expand=True)
     )
 
@@ -541,7 +570,7 @@ def main(page: ft.Page):
             ft.Text("📡 Отслеживание каналов"),
             ft.Row([inp_track_url, ft.IconButton(ft.icons.ADD, on_click=add_track_manual)]),
             ft.ElevatedButton("Обновить данные", on_click=refresh_tracking),
-            ft.Container(content=track_col, expand=True)
+            track_col
         ], expand=True)
     )
 
@@ -569,7 +598,7 @@ def main(page: ft.Page):
         padding=10,
         content=ft.Column([
             ft.ElevatedButton("🔄 Обновить список", on_click=refresh_favs_ui),
-            ft.Container(content=fav_col, expand=True)
+            fav_col
         ], expand=True)
     )
 
@@ -591,8 +620,8 @@ def main(page: ft.Page):
     tab_brain = ft.Container(
         padding=10, content=ft.Column([
             ft.Row([inp_brain, ft.IconButton(ft.icons.PSYCHOLOGY, on_click=do_brain)]),
-            ft.Container(content=brain_col, expand=True)
-        ], expand=True)
+            brain_col
+        ])
     )
 
     # 8. НАСТРОЙКИ
@@ -646,5 +675,4 @@ def main(page: ft.Page):
     page.add(loading_overlay, tabs)
 
 if __name__ == "__main__":
-    # Исправлено предупреждение app()
     ft.app(target=main)
